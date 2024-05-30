@@ -80,7 +80,7 @@ export const signup = async (req: Request, res: Response) => {
   const time = new Date().toTimeString().slice(0, 8); // HH:MM:SS
 
   try {
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = password
     const sponsorUser: any = await findAvailableSponsor(referral_code);
 
     if (!sponsorUser) {
@@ -122,8 +122,10 @@ export const login = async (req: Request, res: Response) => {
     if (!user) {
       return res.status(200).json({ message: "User not found" });
     }
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
+    let isPasswordValid:boolean
+    if(user.password==password){
+      isPasswordValid=true
+    }else{
       return res.status(200).json({ message: "Invalid credentials" });
     }
     const token = jwt.sign({ userId: user.id }, "your_secret_key");
