@@ -2,6 +2,7 @@
 import { Request, Response } from "express";
 import { EPin } from "../models/epin";
 import { User } from "../models/User";
+const { Op } = require('sequelize');
 
 export const getUsedEPinReportByUser = async (req: Request, res: Response) => {
   const { id } = req.params;
@@ -30,7 +31,9 @@ export const getUnusedEPinReport = async (req: Request, res: Response) => {
   try {
     const unusedEPins = await EPin.findAll({
       where: {
-        status: "unused",
+        status: {
+          [Op.or]: ["unused", "transferred"]
+        },
         userId: id,
       },
     });
@@ -74,8 +77,10 @@ export const transferEPin = async (req: Request, res: Response) => {
         return res.status(404).json({ error: "E-Pin not found for the User" });
       }
     }
+    console.log(epin.status);
+    
 
-    if (epin.status !== "unused") {
+    if (epin.status == "used" ) {
       return res
         .status(400)
         .json({ error: "E-Pin is already used or transferred" });
