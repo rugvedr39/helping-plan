@@ -56,7 +56,6 @@ TransferHistory.init(
     sequelize,
     modelName: "TransferHistory",
     tableName: "transfer_histories",
-    underscored: true, // Add this option
 
   }
 );
