@@ -16,14 +16,16 @@ interface TransferHistoryAttributes {
 interface TransferHistoryCreationAttributes
   extends Optional<TransferHistoryAttributes, "id" | "createdAt" | "updatedAt"> {}
 
-class TransferHistory extends Model<TransferHistoryAttributes, TransferHistoryCreationAttributes> implements TransferHistoryAttributes {
-  public id!: number;
-  public ePinId!: number;
-  public transferredById!: number;
-  public transferredToId!: number;
-  public transferredAt!: Date;
-  public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
+class TransferHistory
+  extends Model<TransferHistoryAttributes, TransferHistoryCreationAttributes>
+  implements TransferHistoryAttributes {
+  id: number;
+  ePinId: number;
+  transferredById: number;
+  transferredToId: number;
+  transferredAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 TransferHistory.init(
@@ -36,17 +38,14 @@ TransferHistory.init(
     ePinId: {
       type: DataTypes.INTEGER.UNSIGNED,
       allowNull: false,
-      
     },
     transferredById: {
       type: DataTypes.INTEGER.UNSIGNED,
       allowNull: false,
-     
     },
     transferredToId: {
       type: DataTypes.INTEGER.UNSIGNED,
       allowNull: false,
-     
     },
     transferredAt: {
       type: DataTypes.DATE,
@@ -57,17 +56,16 @@ TransferHistory.init(
     sequelize,
     modelName: "TransferHistory",
     tableName: "transfer_histories",
+    underscored: true, // Add this option
+
   }
 );
 
 User.hasMany(TransferHistory, { foreignKey: "transferredById", as: "TransfersMade" });
 User.hasMany(TransferHistory, { foreignKey: "transferredToId", as: "TransfersReceived" });
 EPin.hasMany(TransferHistory, { foreignKey: "ePinId" });
-
 TransferHistory.belongsTo(User, { as: "transferredBy", foreignKey: "transferredById" });
 TransferHistory.belongsTo(User, { as: "transferredTo", foreignKey: "transferredToId" });
 TransferHistory.belongsTo(EPin, { foreignKey: "ePinId" });
-
-
 
 export { TransferHistory };
