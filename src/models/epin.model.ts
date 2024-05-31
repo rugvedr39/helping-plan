@@ -9,7 +9,7 @@ interface EPinAttributes {
   status: "unused" | "used" | "transferred";
   usedById?: number | null;
   transferredById?: number | null;
-  userId: number; 
+  userId: number;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -23,7 +23,7 @@ class EPin extends Model<EPinAttributes, EPinCreationAttributes> implements EPin
   public status!: "unused" | "used" | "transferred";
   public usedById!: number | null;
   public transferredById!: number | null;
-  public userId!: number; 
+  public userId!: number;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }
@@ -77,6 +77,7 @@ EPin.init(
   }
 );
 
+// Define associations
 // User.hasMany(EPin, { foreignKey: "userId" });
 // EPin.belongsTo(User, { as: "user", foreignKey: "userId" });
 
@@ -92,6 +93,7 @@ const checkEpinValidity = async (epinCode: string): Promise<boolean> => {
   const epin = await EPin.findOne({ where: { code: epinCode, status: ["unused", "transferred"] } });
   return epin ? true : false;
 };
+
 const useEpin = async (epinCode: string, userId: number): Promise<void> => {
   const epin = await EPin.findOne({ where: { code: epinCode, status: ["unused", "transferred"] } });
   if (epin) {
@@ -100,4 +102,5 @@ const useEpin = async (epinCode: string, userId: number): Promise<void> => {
     throw new Error("Invalid epin or epin cannot be used.");
   }
 };
-export { EPin,checkEpinValidity,useEpin };
+
+export { EPin, checkEpinValidity, useEpin };
