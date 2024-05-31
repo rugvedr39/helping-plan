@@ -38,10 +38,7 @@ EPin.init(
     userId: {
       type: DataTypes.INTEGER.UNSIGNED,
       allowNull: false,
-      references: {
-        model: User,
-        key: "id",
-      },
+      
     },
     code: {
       type: DataTypes.STRING(20),
