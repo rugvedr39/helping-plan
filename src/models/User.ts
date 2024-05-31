@@ -1,6 +1,8 @@
 import { Model, DataTypes } from "sequelize";
 import { sequelize } from "../config/database";
 import { GiveHelp } from "./give_help";
+import { EPin } from "./epin.model";
+import { TransferHistory } from "./transferHistory.model";
 
 class User extends Model {}
 
@@ -34,7 +36,7 @@ User.init(
       allowNull: false,
     },
     referral_code: {
-      type: DataTypes.STRING(10),
+      type: DataTypes.STRING(255),
       unique: true,
     },
     referred_by: {
@@ -67,5 +69,19 @@ User.init(
   },
 );
 User.belongsTo(User, { as: "Referrer", foreignKey: "referred_by" });
+User.hasMany(EPin, { foreignKey: "userId" });
+// User.hasMany(TransferHistory, { foreignKey: "transferredById" });
+// User.hasMany(TransferHistory, { foreignKey: "transferredToId" });
+
+
+User.hasMany(EPin, { foreignKey: "userId" });
+EPin.belongsTo(User, { as: "user", foreignKey: "userId" });
+
+User.hasMany(EPin, { foreignKey: "usedById" });
+EPin.belongsTo(User, { as: "usedBy", foreignKey: "usedById" });
+
+User.hasMany(EPin, { foreignKey: "transferredById" });
+EPin.belongsTo(User, { as: "transferredBy", foreignKey: "transferredById" });
+
 
 export { User };

@@ -1,6 +1,9 @@
 import { Sequelize } from "sequelize";
 import * as fs from "fs";
 import * as path from "path";
+import { TransferHistory } from "../models/transferHistory.model";
+import { EPin } from "../models/epin.model";
+import { User } from "../models/User";
 
 const sequelize = new Sequelize({
   database: "defaultdb",

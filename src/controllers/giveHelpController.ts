@@ -1,7 +1,6 @@
 import { Model, Sequelize } from "sequelize";
 import { GiveHelp } from "../models/give_help";
 import { User } from "../models/User";
-import { EPin } from "../models/epin";
 const { Op } = require("sequelize");
 
 export const getTransaction = async (req: any, res: any) => {
@@ -36,20 +35,10 @@ export const updateTransaction = async (req: any, res: any) => {
       return res.status(404).send("Transaction not found");
     }
     transaction.utrNumber = utrNumber;
-    const epin = await EPin.findOne({
-      where: { code: utrNumber, status: "unused" },
-    });
+
     if (transaction.amount == 600.0) {
-      if (!epin) {
-        transaction.status = "Pending";
-        await transaction.save();
-      } else {
-        transaction.status = "Completed";
-        await transaction.save();
-        epin.status = "used";
-        epin.usedById = transaction.sender_id;
-        epin.save();
-      }
+      transaction.status = "Pending";
+      await transaction.save();
     } else {
       transaction.status = "Pending";
       await transaction.save();
@@ -122,22 +111,22 @@ export const TransactionComplete = async (req, res) => {
       ) + amount300;
 
     let level = 0;
-    if (totalAmount >= 82100) level = 9;
-    else if (totalAmount >= 57100) level = 8;
-    else if (totalAmount >= 37100) level = 7;
-    else if (totalAmount >= 22100) level = 6;
-    else if (totalAmount >= 12100) level = 5;
-    else if (totalAmount >= 7100) level = 4;
-    else if (totalAmount >= 4100) level = 3;
-    else if (totalAmount >= 2100) level = 2;
-    else if (totalAmount >= 1500) level = 1;
+    if (totalAmount >= 81500) level = 9;
+    else if (totalAmount >= 56500) level = 8;
+    else if (totalAmount >= 36500) level = 7;
+    else if (totalAmount >= 21500) level = 6;
+    else if (totalAmount >= 11500) level = 5;
+    else if (totalAmount >= 6500) level = 4;
+    else if (totalAmount >= 3500) level = 3;
+    else if (totalAmount >= 1500) level = 2;
+    else if (totalAmount >= 900) level = 1;
 
     let user: any = await User.findOne({
       where: { id: transaction.sender_id },
     });
 
     user.level = level;
-    if (totalAmount >= 1400) {
+    if (totalAmount >= 900) {
       user.status = "Active";
     }
     await user.save();

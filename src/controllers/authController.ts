@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
-import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { User } from "../models/User";
 import { UniqueConstraintError } from "sequelize";
 import { GiveHelp } from "../models/give_help";
+import { EPin, checkEpinValidity, useEpin } from "../models/epin.model";
 
 const findAvailableSponsor = async (
   referralCode: string,
@@ -60,11 +60,18 @@ export const signup = async (req: Request, res: Response) => {
     bank_details,
     upi_number,
     referral_code,
+    epin
   } = req.body;
 
   if (!referral_code) {
     return res.status(400).json({ message: "Referral code is required." });
   }
+
+const isEpinValid = await checkEpinValidity(epin);
+if (isEpinValid==false) {
+  return res.status(402).json({ message: "Invalid epin or epin cannot be used." });
+}
+
 
   let username = "";
   let isUsernameUnique = false;
@@ -99,6 +106,7 @@ export const signup = async (req: Request, res: Response) => {
       referral_code: username,
       referred_by: sponsorUser ? sponsorUser.id : null,
     });
+    await useEpin(epin, newUser.id);
     await processReferralPayments(newUser, referral_code);
     res.status(201).json(newUser);
   } catch (error) {
@@ -181,9 +189,7 @@ async function findNthReferrer(userId: any, n: number) {
 }
 
 async function processReferralPayments(newUser: any, sponser: any) {
-  await createGiveHelpEntry(newUser.id, 5, 600, "7499277181@axl");
   const new_sponser: any = await User.findOne({ where: { username: sponser } });
-
   if (new_sponser) {
     await createGiveHelpEntry(
       newUser.id,
