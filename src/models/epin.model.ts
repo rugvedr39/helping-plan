@@ -53,18 +53,12 @@ EPin.init(
     usedById: {
       type: DataTypes.INTEGER.UNSIGNED,
       allowNull: true,
-      references: {
-        model: User,
-        key: "id",
-      },
+      
     },
     transferredById: {
       type: DataTypes.INTEGER.UNSIGNED,
       allowNull: true,
-      references: {
-        model: User,
-        key: "id",
-      },
+     
     },
   },
   {
