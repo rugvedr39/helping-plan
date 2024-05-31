@@ -111,6 +111,8 @@ public getadminpassWord = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
+    console.log(user);
+    
     res.status(200).json({ password: user.password });
   } catch (error) {
     console.error("Error fetching admin password:", error);
