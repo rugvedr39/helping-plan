@@ -3,30 +3,7 @@ import { sequelize } from "../config/database";
 import { User } from "./User";
 import { TransferHistory } from "./transferHistory.model"; // Import TransferHistory
 
-interface EPinAttributes {
-  id: number;
-  code: string;
-  status: "unused" | "used" | "transferred";
-  usedById?: number | null;
-  transferredById?: number | null;
-  userId: number;
-  createdAt?: Date;
-  updatedAt?: Date;
-}
-
-interface EPinCreationAttributes
-  extends Optional<EPinAttributes, "id" | "usedById" | "transferredById" | "createdAt" | "updatedAt"> {}
-
-class EPin extends Model<EPinAttributes, EPinCreationAttributes> implements EPinAttributes {
-  public id!: number;
-  public code!: string;
-  public status!: "unused" | "used" | "transferred";
-  public usedById!: number | null;
-  public transferredById!: number | null;
-  public userId!: number;
-  public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
-}
+class EPin extends Model{}
 
 EPin.init(
   {

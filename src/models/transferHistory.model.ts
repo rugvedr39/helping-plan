@@ -3,30 +3,7 @@ import { sequelize } from "../config/database";
 import { User } from "./User";
 import { EPin } from "./epin.model";
 
-interface TransferHistoryAttributes {
-  id: number;
-  ePinId: number;
-  transferredById: number;
-  transferredToId: number;
-  transferredAt: Date;
-  createdAt?: Date;
-  updatedAt?: Date;
-}
-
-interface TransferHistoryCreationAttributes
-  extends Optional<TransferHistoryAttributes, "id" | "createdAt" | "updatedAt"> {}
-
-class TransferHistory
-  extends Model<TransferHistoryAttributes, TransferHistoryCreationAttributes>
-  implements TransferHistoryAttributes {
-  id: number;
-  ePinId: number;
-  transferredById: number;
-  transferredToId: number;
-  transferredAt: Date;
-  createdAt?: Date;
-  updatedAt?: Date;
-}
+class TransferHistory extends Model{}
 
 TransferHistory.init(
   {

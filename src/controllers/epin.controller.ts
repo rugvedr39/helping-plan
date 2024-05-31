@@ -81,7 +81,7 @@ export const transferEPin = async (req: Request, res: Response) => {
     );
 
     // Create Transfer History
-    const transferHistoryEntries = epins.map((epin) => ({
+    const transferHistoryEntries = epins.map((epin:any) => ({
       ePinId: epin.id,
       transferredById: userId,
       transferredToId: transferredToId,
