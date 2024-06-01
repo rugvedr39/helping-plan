@@ -42,52 +42,62 @@ export const createBulkEPin = async (req: Request, res: Response) => {
 };
 
 export const transferEPin = async (req: Request, res: Response) => {
-  const { userId, ePinIds, transferredToId } = req.body;
+  const { userId, transferredToId, ePinCount } = req.body;
 
-  if (!userId || !ePinIds || !Array.isArray(ePinIds) || ePinIds.length === 0 || !transferredToId) {
+  if (!userId || !transferredToId || !ePinCount || ePinCount <= 0) {
     return res.status(400).json({ message: "Invalid input data" });
   }
 
   try {
-    const user = await User.findByPk(userId);
-    const recipient = await User.findByPk(transferredToId);
-    console.log("user", user);
-    console.log("transferredToId", transferredToId);
-    console.log("recipient", recipient);
+    const user:any = await User.findByPk(userId);
+    const recipient:any = await User.findByPk(transferredToId);
+    console.log("user",user.id);
+    console.log("recipient",recipient.id);
     
-    
-
 
     if (!user || !recipient) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const epins = await EPin.findAll({
+    // Get the count of unused EPins owned by the user
+    const unusedEPinsCount = await EPin.count({
       where: {
-        id: ePinIds,
-        userId: userId,
-        status: "unused",
+        userId: user.id,
+        status: ["unused","transferred"],
       },
     });
 
-    if (epins.length !== ePinIds.length) {
-      return res.status(400).json({ message: "Some EPins are not owned by the user or are already used/transferred" });
+console.log("unusedEPinsCount",unusedEPinsCount);
+
+
+    // Check if the user has enough unused EPins
+    if (unusedEPinsCount < ePinCount) {
+      return res.status(400).json({ message: "Insufficient unused EPins available for transfer" });
     }
 
+    const epins:any = await EPin.findAll({
+      where: {
+        userId: userId,
+        status: ["unused","transferred"],
+      },
+      limit: +ePinCount,
+    });
+
+    console.log("epin will be updated",epins);
+    
     // Update EPins
     await EPin.update(
-      { status: "transferred", transferredById: userId, userId: transferredToId },
-      { where: { id: ePinIds } }
+      { status: "transferred", transferredById: userId, userId: recipient.id },
+      { where: { id: epins.map((epin) => epin.id) } }
     );
 
     // Create Transfer History
-    const transferHistoryEntries = epins.map((epin:any) => ({
+    const transferHistoryEntries = epins.map((epin: any) => ({
       ePinId: epin.id,
       transferredById: userId,
       transferredToId: transferredToId,
       transferredAt: new Date(),
     }));
-
     await TransferHistory.bulkCreate(transferHistoryEntries);
 
     return res.status(200).json({ message: "EPins transferred successfully" });
