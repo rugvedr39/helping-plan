@@ -16,12 +16,13 @@ router.post("/post-completed", updateTransaction);
 router.get("/transaction-completed/:id", TransactionComplete);
 router.get("/tree/:id", getReferralTree);
 
-router.get("/top-receivers", async (req, res) => {
-  const excludedIds = [
-    5, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22,]
+router.get("/top-receivers", async (req:any, res:any) => {
+  const excludedIds = [5, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22];
+  const page = parseInt(req.query.page) || 1;
+  const pageSize = parseInt(req.query.pageSize) || 10;
 
   try {
-    const topReceivers = await GiveHelp.findAll({
+    const topReceivers = await GiveHelp.findAndCountAll({
       where: {
         status: "Completed",
         receiver_id: {
@@ -34,7 +35,8 @@ router.get("/top-receivers", async (req, res) => {
       ],
       group: "receiver_id",
       order: [[sequelize.col("total_received"), "DESC"]],
-      limit: 10,
+      limit: pageSize,
+      offset: (page - 1) * pageSize,
       include: [
         {
           association: "Receiver",
@@ -43,7 +45,12 @@ router.get("/top-receivers", async (req, res) => {
       ],
     });
 
-    res.json(topReceivers);
+    res.json({
+      users: topReceivers.rows,
+      totalCount: topReceivers.count.length,
+      currentPage: page,
+      pageSize: pageSize,
+    });
   } catch (error) {
     console.error("Failed to fetch top receivers:", error);
     res.status(500).send("Internal Server Error");
