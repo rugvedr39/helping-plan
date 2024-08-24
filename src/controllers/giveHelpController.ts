@@ -1,4 +1,4 @@
-import { Model, Sequelize } from "sequelize";
+import { Model, Sequelize,QueryTypes } from "sequelize";
 import { GiveHelp } from "../models/give_help";
 import { User } from "../models/User";
 const { Op } = require("sequelize");
@@ -210,32 +210,32 @@ export const getReferralTree = async (req: any, res: any) => {
 };
 
 async function getBinaryTreeLevels(userId, maxLevel = 10) {
-  let result = [];
-  let queue = [{ userId: userId, level: 0 }];
+  const query = `
+    WITH RECURSIVE referral_tree AS (
+      SELECT id, name, email, username, mobile_number, status, referred_by, 0 AS level
+      FROM Users
+      WHERE id = :userId
+      UNION ALL
+      SELECT u.id, u.name, u.email, u.username, u.mobile_number, u.status, u.referred_by, rt.level + 1
+      FROM Users u
+      INNER JOIN referral_tree rt ON u.referred_by = rt.id
+      WHERE rt.level < :maxLevel
+    )
+    SELECT * FROM referral_tree;
+  `;
 
-  while (queue.length > 0) {
-    let current = queue.shift();
-    if (current.level > maxLevel) {
-      break;
+  const users = await User.sequelize.query(query, {
+    replacements: { userId, maxLevel },
+    type: QueryTypes.SELECT, // Correctly accessing QueryTypes from Sequelize
+  });
+
+  const result = [];
+  users.forEach((user: any) => {
+    if (!result[user.level]) {
+      result[user.level] = { level: user.level, count: 0, users: [] };
     }
-
-    let user: any = await User.findByPk(current.userId);
-    if (!user) continue;
-
-    if (!result[current.level]) {
-      result[current.level] = { level: current.level, count: 0, users: [] };
-    }
-    result[current.level].count++;
-
-    // Fetch additional details about the person who referred this user
-    let referrer = null;
-    if (user.referred_by) {
-      referrer = await User.findByPk(user.referred_by, {
-        attributes: ["id", "name", "username"],
-      });
-    }
-
-    result[current.level].users.push({
+    result[user.level].count++;
+    result[user.level].users.push({
       id: user.id,
       name: user.name,
       email: user.email,
@@ -243,22 +243,15 @@ async function getBinaryTreeLevels(userId, maxLevel = 10) {
       mobile_number: user.mobile_number,
       status: user.status,
       referred_by: user.referred_by,
-      referrer_name: referrer ? referrer.name : null,
-      referrer_username: referrer ? referrer.username : null,
+      referrer_name: null, // Optional: you can fetch this separately if needed
+      referrer_username: null, // Optional: you can fetch this separately if needed
     });
+  });
 
-    if (current.level < maxLevel) {
-      let children = await User.findAll({
-        where: { referred_by: user.id },
-      });
-
-      children.forEach((child: any) => {
-        queue.push({ userId: child.id, level: current.level + 1 });
-      });
-    }
-  }
   return result.filter((level) => level.count > 0);
 }
+
+
 
 // create createGiveHelpEntry
 async function createGiveHelpEntry(
