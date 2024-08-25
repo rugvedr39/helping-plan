@@ -211,45 +211,74 @@ export const getReferralTree = async (req: any, res: any) => {
 
 async function getBinaryTreeLevels(userId, maxLevel = 10) {
   const query = `
-    WITH RECURSIVE referral_tree AS (
-      SELECT id, name, email, username, mobile_number, status, referred_by, 0 AS level
-      FROM Users
-      WHERE id = :userId
-      UNION ALL
-      SELECT u.id, u.name, u.email, u.username, u.mobile_number, u.status, u.referred_by, rt.level + 1
-      FROM Users u
-      INNER JOIN referral_tree rt ON u.referred_by = rt.id
-      WHERE rt.level < :maxLevel
-    )
-    SELECT * FROM referral_tree;
-  `;
+  WITH RECURSIVE referral_tree AS (
+    SELECT
+      u1.id,
+      u1.name,
+      u1.email,
+      u1.username,
+      u1.mobile_number,
+      u1.status,
+      u1.referred_by,
+      u1.level,
+      CAST(NULL AS CHAR(255)) AS referrer_name,
+      CAST(NULL AS CHAR(255)) AS referrer_username,
+      0 AS tree_level
+    FROM Users u1
+    WHERE u1.id = :userId
+    
+    UNION ALL
+    
+    SELECT
+      u2.id,
+      u2.name,
+      u2.email,
+      u2.username,
+      u2.mobile_number,
+      u2.status,
+      u2.referred_by,
+      u2.level,
+      IFNULL(referrer.name, '') AS referrer_name,
+      IFNULL(referrer.username, '') AS referrer_username,
+      rt.tree_level + 1
+    FROM Users u2
+    INNER JOIN referral_tree rt ON u2.referred_by = rt.id
+    LEFT JOIN Users referrer ON u2.referred_by = referrer.id
+    WHERE rt.tree_level < :maxLevel
+  )
+  SELECT * FROM referral_tree;
+`;
 
-  const users = await User.sequelize.query(query, {
-    replacements: { userId, maxLevel },
-    type: QueryTypes.SELECT, // Correctly accessing QueryTypes from Sequelize
+const users = await User.sequelize.query(query, {
+  replacements: { userId, maxLevel },
+  type: QueryTypes.SELECT,
+});
+
+const result = [];
+users.forEach((user: any) => {
+  if (!result[user.tree_level]) {
+    result[user.tree_level] = { level: user.tree_level, count: 0, users: [] };
+  }
+  result[user.tree_level].count++;
+  result[user.tree_level].users.push({
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    username: user.username,
+    mobile_number: user.mobile_number,
+    status: user.status,
+    referred_by: user.referred_by,
+    level: user.level,
+    referrer_name: user.referrer_name,
+    referrer_username: user.referrer_username,
   });
+});
 
-  const result = [];
-  users.forEach((user: any) => {
-    if (!result[user.level]) {
-      result[user.level] = { level: user.level, count: 0, users: [] };
-    }
-    result[user.level].count++;
-    result[user.level].users.push({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      username: user.username,
-      mobile_number: user.mobile_number,
-      status: user.status,
-      referred_by: user.referred_by,
-      referrer_name: null, // Optional: you can fetch this separately if needed
-      referrer_username: null, // Optional: you can fetch this separately if needed
-    });
-  });
-
-  return result.filter((level) => level.count > 0);
+return result.filter((level) => level !== null && level.count > 0);
 }
+
+export { getBinaryTreeLevels };
+
 
 
 
