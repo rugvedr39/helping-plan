@@ -136,4 +136,125 @@ public updatePassword = async (req, res) => {
   }
 }
 
+
+public updateAdminDetails = async (req, res) => {
+  try {
+    const { 
+      whatsappGroupUrl,
+      zoomMeetingTitle,
+      zoomMeetingTime,
+      zoomMeetingUrl
+    } = req.body;
+
+    const admin: any = await Admin.findByPk(1); // Assuming single admin or ID 1
+    if (!admin) {
+      return res.status(404).json({ message: "Admin not found" });
+    }
+
+    if (whatsappGroupUrl) admin.whatsappGroupUrl = whatsappGroupUrl;
+    if (zoomMeetingTitle) admin.zoomMeetingTitle = zoomMeetingTitle;
+    if (zoomMeetingTime) admin.zoomMeetingTime = zoomMeetingTime;
+    if (zoomMeetingUrl) admin.zoomMeetingUrl = zoomMeetingUrl;
+
+    await admin.save();
+    res.status(200).json({ 
+      message: "Admin details updated successfully",
+      data: {
+        whatsappGroupUrl: admin.whatsappGroupUrl,
+        zoomMeetingTitle: admin.zoomMeetingTitle,
+        zoomMeetingTime: admin.zoomMeetingTime,
+        zoomMeetingUrl: admin.zoomMeetingUrl
+      }
+    });
+  } catch (error) {
+    console.error("Error updating admin details:", error);
+    res.status(500).json({ message: "Error updating admin details" });
+  }
+}
+
+
+public getAdminDetails = async (req, res) => {
+  try {
+    const admin = await Admin.findByPk(1, {
+      attributes: { 
+        exclude: ['password','username'] // Don't return password
+      }
+    });
+
+    if (!admin) {
+      return res.status(404).json({ message: "Admin not found" });
+    }
+
+    res.status(200).json({
+      message: "Admin details retrieved successfully",
+      data: admin
+    });
+  } catch (error) {
+    console.error("Error getting admin details:", error);
+    res.status(500).json({ message: "Error getting admin details" });
+  }
+}
+
+public updateWhatsappGroup = async (req, res) => {
+  try {
+    const { whatsappGroupUrl } = req.body;
+
+    if (!whatsappGroupUrl) {
+      return res.status(400).json({ message: "WhatsApp group URL is required" });
+    }
+
+    const admin: any = await Admin.findByPk(1);
+    if (!admin) {
+      return res.status(404).json({ message: "Admin not found" });
+    }
+
+    admin.whatsappGroupUrl = whatsappGroupUrl;
+    await admin.save();
+
+    res.status(200).json({ 
+      message: "WhatsApp group URL updated successfully",
+      whatsappGroupUrl: admin.whatsappGroupUrl
+    });
+  } catch (error) {
+    console.error("Error updating WhatsApp group URL:", error);
+    res.status(500).json({ message: "Error updating WhatsApp group URL" });
+  }
+}
+
+public updateZoomDetails = async (req, res) => {
+  try {
+    const { 
+      zoomMeetingTitle,
+      zoomMeetingTime, 
+      zoomMeetingUrl,
+      whatsappGroupUrl 
+    } = req.body;
+
+    const admin: any = await Admin.findByPk(1);
+    if (!admin) {
+      return res.status(404).json({ message: "Admin not found" });
+    }
+
+    if (zoomMeetingTitle) admin.zoomMeetingTitle = zoomMeetingTitle;
+    if (zoomMeetingTime) admin.zoomMeetingTime = zoomMeetingTime;
+    if (zoomMeetingUrl) admin.zoomMeetingUrl = zoomMeetingUrl;
+    if (whatsappGroupUrl) admin.whatsappGroupUrl = whatsappGroupUrl;
+
+    await admin.save();
+
+    res.status(200).json({
+      message: "Zoom meeting details updated successfully",
+      data: {
+        zoomMeetingTitle: admin.zoomMeetingTitle,
+        zoomMeetingTime: admin.zoomMeetingTime,
+        zoomMeetingUrl: admin.zoomMeetingUrl,
+        whatsappGroupUrl: admin.whatsappGroupUrl
+      }
+    });
+  } catch (error) {
+    console.error("Error updating Zoom details:", error);
+    res.status(500).json({ message: "Error updating Zoom details" });
+  }
+}
+
 }

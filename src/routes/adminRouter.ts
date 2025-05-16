@@ -8,5 +8,7 @@ router.get("/usersCount", adminController.UsersCount);
 router.put("/users/:id", adminController.updateUserDetails);
 router.get("/getpassword", adminController.getadminpassWord);
 router.post("/updatePassword", adminController.updatePassword);
+router.get("/getAdminDetails", adminController.getAdminDetails);
+router.post("/save-meeting-details", adminController.updateZoomDetails);
 
 export default router;

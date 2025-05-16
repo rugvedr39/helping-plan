@@ -19,6 +19,32 @@ Admin.init(
       type: DataTypes.STRING,
       allowNull: false,
     },
+        whatsappGroupUrl: {
+      type: DataTypes.STRING(500),
+      allowNull: false,
+      defaultValue: '',
+      validate: {
+        isUrl: true
+      }
+    },
+    zoomMeetingTitle: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: 'Weekly Zoom Meeting'
+    },
+    zoomMeetingTime: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: 'Every Saturday at 7:00 PM IST'
+    },
+    zoomMeetingUrl: {
+      type: DataTypes.STRING(500),
+      allowNull: false,
+      defaultValue: '',
+      validate: {
+        isUrl: true
+      }
+    }
   },
   {
     sequelize,
